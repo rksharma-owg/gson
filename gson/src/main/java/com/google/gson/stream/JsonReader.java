@@ -1228,10 +1228,10 @@ public class JsonReader implements Closeable {
           pos = p;
           int len = p - start - 1;
           if (builder == null) {
-            return new String(buffer, start, len);
+            return validateString(new String(buffer, start, len));
           } else {
             builder.append(buffer, start, len);
-            return builder.toString();
+            return validateString(builder.toString());
           }
         } else if (c == '\\') {
           pos = p;
@@ -1261,6 +1261,24 @@ public class JsonReader implements Closeable {
         throw syntaxError("Unterminated string");
       }
     }
+  }
+
+  /** Validates that a string does not contain unpaired UTF-16 surrogate characters. */
+  private String validateString(String value) throws IOException {
+    if (strictness != Strictness.STRICT) {
+      return value;
+    }
+    for (int i = 0; i < value.length(); i++) {
+      char c = value.charAt(i);
+      if (Character.isHighSurrogate(c)) {
+        if (i + 1 >= value.length() || !Character.isLowSurrogate(value.charAt(++i))) {
+          throw syntaxError("Unpaired surrogate characters are not allowed in strict mode");
+        }
+      } else if (Character.isLowSurrogate(c)) {
+        throw syntaxError("Unpaired surrogate characters are not allowed in strict mode");
+      }
+    }
+    return value;
   }
 
   /** Returns an unquoted value as a string. */
