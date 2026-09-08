@@ -139,7 +139,8 @@ public final class JsonReaderTest {
 
   @Test
   public void testStrictModeRejectsUnpairedSurrogates() throws IOException {
-    for (String json : new String[] {"\"\\uD800\"", "\"\\uDC00\"", "{\"\\uD800\":1}"}) {
+    for (String json :
+        new String[] {"\"\\uD800\"", "\"\\uDC00\"", "\"\uD800\"", "{\"\\uD800\":1}"}) {
       JsonReader reader = new JsonReader(reader(json));
       reader.setStrictness(Strictness.STRICT);
       if (json.startsWith("{")) {

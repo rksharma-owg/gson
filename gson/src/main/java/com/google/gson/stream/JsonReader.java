@@ -1270,11 +1270,12 @@ public class JsonReader implements Closeable {
     }
     for (int i = 0; i < value.length(); i++) {
       char c = value.charAt(i);
-      if (Character.isHighSurrogate(c)) {
-        if (i + 1 >= value.length() || !Character.isLowSurrogate(value.charAt(++i))) {
-          throw syntaxError("Unpaired surrogate characters are not allowed in strict mode");
+      if (Character.isSurrogate(c)) {
+        if (Character.isHighSurrogate(c)
+            && i + 1 < value.length()
+            && Character.isLowSurrogate(value.charAt(++i))) {
+          continue;
         }
-      } else if (Character.isLowSurrogate(c)) {
         throw syntaxError("Unpaired surrogate characters are not allowed in strict mode");
       }
     }
